@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Second Opportunity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: 'Raleway', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        /* Header */
+        .header {
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header img {
+            max-width: 200px;
+        }
+
+        /* Barra de progreso */
+        .progress-bar {
+            width: 100%;
+            background: #ddd;
+            height: 5px;
+            position: relative;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: #007bff;
+            transition: width 0.3s ease;
+        }
+
+        /* Contenedor del formulario */
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            margin: 20px auto;
+        }
+
+        .form-step {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .form-step.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .form-step label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+            background-color: #f9f9f9;
+        }
+
+        .option-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .option-item img {
+            width: 80px;
+            height: auto;
+            margin-bottom: 5px;
+        }
+
+        .option-item span {
+            font-size: 14px;
+        }
+
+        /* Botones */
+        .buttons {
+            margin-top: 20px;
+        }
+
+        .buttons button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+        .buttons button:hover {
+            background: #0056b3;
+        }
+
+        .buttons .back {
+            background: #ccc;
+        }
+
+        .buttons .back:hover {
+            background: #999;
+        }
+
+        /* Mostrar u ocultar el teléfono y el mensaje */
+        #telefono, #cumples, #nocumples {
+            display: none;
+        }
+
+
+         /* Footer Style */
+         .footer {
+            background-color: #EEEEEE;
+            color: #97999c;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 8px;
+            line-height: 1.6;
+        }
+
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .call-button-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .call-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #084c73;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      border: none;
+      border-radius: 5px;
+      padding: 10px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    
+
+    .tap-gif {
+      position: absolute;
+      top: 10px;
+      right: -30px;
+      width: 50px;
+      height: auto;
+    }
+
+
+    .call-info {
+      color: #333;
+    }
+
+    .call-info .call-now {
+    font-size: 14px;
+    font-weight: bold;
+    color: #d32f2f;
+    text-decoration: underline;
+    margin: 10px;
+}
+
+    .call-info .live-wait-time {
+      font-size: 18px;
+      margin: 5px 0;
+    }
+
+    .call-info .live-wait-time span {
+      font-weight: bold;
+      color: #4caf50;
+    }
+
+    .call-info .available-agents {
+      font-size: 18px;
+      margin: 5px 0;
+    }
+
+    .call-info .available-agents span {
+      font-weight: bold;
+      color: #d32f2f;
+    }
+    </style>
+</head>
+<body>
+
+<!-- Header con el logo centrado -->
+<header class="header">
+    <img src="https://i.postimg.cc/sg2ZFPxy/Dise-o-sin-t-tulo-5-removebg-preview.png" alt="Maquinaria de Impresión">
+</header>
+
+<!-- Barra de progreso -->
+<div class="progress-bar">
+    <div class="progress" id="progress"></div>
+</div>
+
+<div class="form-container">
+    <form id="dynamicForm">
+        <!-- Paso 1: Tipo de empresa -->
+        <div class="form-step active" data-step="1">
+            <label>How much Credit Card, Medical, or Personal Loan Debt do you have?</label>
+            <div class="option-group">
+                <div class="option-item" onclick="nextStep(2, this)">
+                    <span>$20k+</span>
+                </div>
+                <div class="option-item" onclick="nextStep(2, this)">
+                    <span>$15k - $18K</span>
+                </div>
+                <div class="option-item" onclick="nextStep(2, this)">
+                    <span>$0 - $12k</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 2: Máquina DTF -->
+        <div class="form-step" data-step="2">
+            <label>What is your current situation?</label>
+            <div class="option-group">
+                <div class="option-item" onclick="nextStep(3, this)">
+                    <span>Employed</span>
+                </div>
+                <div class="option-item" onclick="nextStep(3, this)">
+                    <span>Unemployed</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 3: Necesidades -->
+        <div class="form-step" data-step="3">
+            <label>Do you know what debt consolidation is?</label>
+            <p style="font-size: 8px; color: grey;">Debt consolidation is a way to combine multiple debts, like credit cards or loans, into one single payment. This helps make managing your finances easier, often with a lower interest rate, so you pay less over time. 
+                It’s a tool to simplify your payments and reduce financial stress.</p>
+
+            <div class="option-group">
+                <div class="option-item" onclick="nextStep(4, this)">
+                    <span>Yes</span>
+                </div>
+                <div class="option-item" onclick="nextStep(4, this)">
+                    <span>No</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 4: Productos -->
+        <div class="form-step" data-step="4" id="productos">
+            <label>How urgent is it for you to resolve this situation?</label>
+            <div class="option-item" onclick="nextStep(5, this)">
+                <span>I need to solve it now, I can’t take it anymore.</span>
+            </div>
+            <div class="option-item" onclick="nextStep(5, this)">
+                <span>I’m gathering information to make the best decision.</span>
+            </div>
+            <div class="option-item" onclick="nextStep(5, this)">
+                <span>I want to resolve it and I’m committed to working with a professional.</span>
+            </div>
+        </div>
+
+        <!-- Paso 5: Resumen -->
+        <div class="form-step" data-step="5" id="resumen">
+            <div id="telefono">
+                
+                <h2> <a href="tel:+18888130895">+18888130895</a></h2>
+                
+            </div>
+            <div id="cumples">
+                <h2>**Congratulations!**</h2>
+                <p>You meet the requirements to apply for debt consolidation, which means taking out a loan to pay off your existing debts, leaving you with just one creditor and a lower interest rate.</p>
+                <div class="call-button-container">
+                    <a href="tel:+1234567890" class="call-button">
+                      Click to Call Now
+                    </a>
+                    <img src="https://i.postimg.cc/05DtrSv7/tap.gif" alt="Tap GIF" class="tap-gif">
+                </div>
+                <div class="call-info">
+                    <div class="call-now">Call Now:<a href="tel:+18888130895">+18888130895</a></div>
+                    <div class="live-wait-time">Live Wait Time: <span>0</span> minutes.</div>
+                    <div class="available-agents">Available Agents: <span>4</span></div>
+                  </div>
+            </div>  
+            <div id="nocumples">
+                <p>We can only assist you if your debts exceed $15K and if you are currently employed as a worker.  
+
+                    You do not meet the requirements at the moment, but if you meet them in the future or know a family member who does, you can apply again, and we will be happy to help you.</p>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<footer class="footer">
+    <p>
+        Disclaimer: This is an advertorial and not an actual news article, blog, or consumer protection update. Our aim is to bring consumers the best information that may help them make informed decisions. This article is for demonstration purposes only. By proceeding forward you automatically agree to our terms and conditions. The purpose of this site is the solicitation of insurance. This article is for demonstration purposes only. By proceeding forward you automatically agree to our terms and conditions. The purpose of this site is the solicitation of insurance. This site is not a part of the Facebook website or Facebook Inc. This site is not endorsed by Facebook in any way. FACEBOOK is a trademark of FACEBOOK, Inc.
+    </p>
+    <p>
+        <a href="#">Privacy Policy</a> | <a href="#">Terms & Conditions</a>
+    </p>
+</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    let currentStep = 1;
+    let selectedOption = "";
+
+    function nextStep(step, item) {
+        // Verificar la opción seleccionada en el paso 1
+        if (currentStep === 1) {
+            selectedOption = item.querySelector("span").textContent;
+        }
+
+        // Avanzar al siguiente paso
+        document.querySelector(".form-step.active").classList.remove("active");
+        document.querySelector(`.form-step[data-step="${step}"]`).classList.add("active");
+        currentStep = step;
+        updateProgress();
+        
+        // Mostrar el teléfono o el mensaje según la selección
+        if (currentStep === 5) {
+            if (selectedOption === "$0 - $12k") {
+                document.getElementById("telefono").style.display = "none";
+                document.getElementById("cumples").style.display = "none";
+                document.getElementById("nocumples").style.display = "block";
+            } else {
+                document.getElementById("telefono").style.display = "block";
+                document.getElementById("cumples").style.display = "block";
+                document.getElementById("nocumples").style.display = "none";
+            }
+        }
+    }
+
+    function updateProgress() {
+        document.getElementById("progress").style.width = `${(currentStep - 1) * 25}%`;
+    }
+
+    window.nextStep = nextStep;
+});
+</script>
+
+</body>
+</html>
