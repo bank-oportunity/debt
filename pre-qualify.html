@@ -349,6 +349,9 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedOption = item.querySelector("span").textContent;
         }
 
+        const question = `Pregunta${currentStep}`;
+        selectedOption = item.querySelector("span").textContent;
+
         // Rastrear con Facebook Pixel
         fbq('trackCustom', question, { option: selectedOption });
 
