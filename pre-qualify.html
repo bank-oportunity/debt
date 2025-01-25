@@ -349,6 +349,9 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedOption = item.querySelector("span").textContent;
         }
 
+        // Rastrear con Facebook Pixel
+        fbq('trackCustom', question, { option: selectedOption });
+
         // Avanzar al siguiente paso
         document.querySelector(".form-step.active").classList.remove("active");
         document.querySelector(`.form-step[data-step="${step}"]`).classList.add("active");
